@@ -1,35 +1,26 @@
-use bevy::prelude::*;
+use bevy::{prelude::*};
 
+use crate::components::{Dialogue, Player};
 pub struct DialoguePlugin;
 
 impl Plugin for DialoguePlugin {
     fn build(&self, app: &mut App) {
-        app
-        .add_startup_system_to_stage(StartupStage::PostStartup, spawn_ui);
+        app.add_system(despawn_dialogue);
     }
 }
 
-fn spawn_ui(
+fn despawn_dialogue(
     mut commands: Commands,
-    asset_server: Res<AssetServer>
+    kb: Res<Input<KeyCode>>,
+    mut player_query: Query<&mut Player>,
+    dialogue_query: Query<Entity, With<Dialogue>>
 ) {
-    //commands.spawn()
-    commands.spawn(
-        TextBundle::from_section(
-            "Hola que tal como estas?",
-            TextStyle {
-                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                font_size: 30.0,
-                color: Color::WHITE,
-            },
-        )
-        .with_style(Style {
-            align_items: AlignItems::Center,
-            align_self: AlignSelf::FlexEnd,
-            display: Display::Flex,
-            position: UiRect {bottom: Val::Px(0.), left: Val::Px(440.), ..default()},
-            justify_content: JustifyContent::Center,
-            ..default()
-        }),
-    );
+    if let Ok(mut player) = player_query.get_single_mut() {
+        if kb.any_pressed([KeyCode::Space]) {
+            for ent in dialogue_query.iter() {
+                commands.entity(ent).despawn_recursive();
+            }
+            player.active = true;
+        }
+    }
 }
