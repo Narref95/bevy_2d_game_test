@@ -1,4 +1,4 @@
-use bevy::prelude::{Component, Handle, Image};
+use bevy::prelude::{Component};
 
 #[derive(Component)]
 pub struct Velocity {
@@ -14,13 +14,4 @@ pub struct Player {
 pub struct MainCamera;
 
 #[derive(Component)]
-pub struct LookAtCamera;
-
-#[derive(Component)]
-pub struct NPC {
-    pub text: String,
-    pub image: Handle<Image>
-}
-
-#[derive(Component)]
-pub struct Dialogue;
+pub struct Ground;
