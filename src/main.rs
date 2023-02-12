@@ -36,6 +36,10 @@ struct ImageAssets {
     grass: Handle<Image>,
     #[asset(path = "luffy.png")]
     luffy: Handle<Image>,
+    #[asset(texture_atlas(tile_size_x = 40., tile_size_y = 40.))]
+    #[asset(texture_atlas(columns = 5, rows = 4))]
+    #[asset(path = "luffy_sheet.png")]
+    luffy_sheet: Handle<TextureAtlas>
 }
 
 fn main() {
@@ -110,6 +114,13 @@ fn setup(
             }
         }
     }
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::UVSphere { radius: 1.0, ..Default::default() })),
+        material: materials.add(Color::rgb(1.0, 0.0, 0.0).into()),
+        transform: Transform::from_xyz(0.0, 3.0, 0.0),
+        ..default()
+    });
     
     // camera
     commands.spawn(Camera3dBundle {

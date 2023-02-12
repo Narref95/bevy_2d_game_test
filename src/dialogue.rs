@@ -65,6 +65,10 @@ macro_rules! spawn_dialogue_with_queue {
                         flex_direction: FlexDirection::Column,
                         align_items: AlignItems::Baseline,
                         border: UiRect::all(Val::Px(10.)),
+                        size: Size {
+                            height: Val::Px(150.0),
+                            width: Val::Px(500.0)
+                        },
                         ..default()
                     },
                     ..default()

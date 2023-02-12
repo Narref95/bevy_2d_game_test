@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_sprite3d::*;
 use crate::{*};
@@ -9,21 +11,25 @@ impl Plugin for PlayerPlugin {
         .add_system_set(SystemSet::on_enter(GameState::Ready)
             .with_system(player_spawn_system)
         )
+        .add_system_set( SystemSet::on_update(GameState::Ready).with_system(animate_sprite))
         .add_system(player_movement_system)
         .add_system(player_keyboard_event_system)
         .add_system(camera_follow_player);
     }
 }
 
+#[derive(Component, Deref, DerefMut)]
+struct AnimationTimer(Timer);
+
 fn player_spawn_system(
     mut commands: Commands,
     images: Res<ImageAssets>,
     mut sprite_params: Sprite3dParams 
 ) {
-    commands.spawn(Sprite3d {
-        image: images.player.clone(),
+    commands.spawn(AtlasSprite3d {
+        atlas: images.luffy_sheet.clone(),
         transform: Transform::from_xyz(0.0, 1.0, 0.0).with_rotation(Quat::from_rotation_y(0.75)),
-        pixels_per_metre: 125.,
+        pixels_per_metre: 20.,
         partial_alpha: true,
         unlit: true,
         ..default()
@@ -31,7 +37,8 @@ fn player_spawn_system(
     .insert(Player {
         active: true
     })
-    .insert(Velocity {x: 0., z: 0.});
+    .insert(Velocity {x: 0., z: 0.})
+    .insert(AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)));
 
     let grass_positions = [
         Transform::from_xyz(0.0, 0.5, -5.0),
@@ -72,7 +79,7 @@ fn player_keyboard_event_system(
         let mut base_velocity: f32 = 1.;
 
         if kb.pressed(KeyCode::LShift) {
-            base_velocity *= 2.0;
+            base_velocity *= 1.3;
         }
 
         if kb.pressed(KeyCode::Left) {
@@ -115,6 +122,51 @@ fn camera_follow_player(
         if let Ok(mut camera_transform) = query_c.get_single_mut() {
             camera_transform.translation.x = player_transform.translation.x - 10.;
             camera_transform.translation.z = player_transform.translation.z - 10.;
+        }
+    }
+}
+
+const NO_ANIMATION: [usize; 2] = [0,0];
+const DOWN_RANGE: [usize; 2] = [0, 4];
+const RIGHT_RANGE: [usize; 2] = [5, 9];
+const LEFT_RANGE: [usize; 2] = [10, 14];
+const UP_RANGE: [usize; 2] = [15, 19];
+
+fn animate_sprite(
+    time: Res<Time>,
+    mut query: Query<(&Player, &mut AnimationTimer, &mut AtlasSprite3dComponent)>,
+    kb: Res<Input<KeyCode>>
+) {
+    for (player, mut timer, mut sprite) in query.iter_mut() {
+        if !player.active {
+            sprite.index = 0;
+            return;
+        }
+        let mut range: [usize; 2] = NO_ANIMATION;
+        if kb.pressed(KeyCode::Left) {
+            range = LEFT_RANGE;
+        } else if kb.pressed(KeyCode::Right) {
+            range = RIGHT_RANGE;
+        } else if kb.pressed(KeyCode::Down) {
+            range = DOWN_RANGE;
+        } else if kb.pressed(KeyCode::Up) {
+            range = UP_RANGE;
+        }
+        if kb.pressed(KeyCode::LShift) {
+            timer.0.set_duration(Duration::from_secs_f32(0.1));
+        } else {
+            timer.0.set_duration(Duration::from_secs_f32(0.125));
+        }
+        timer.tick(time.delta());
+        if kb.any_pressed([KeyCode::Left, KeyCode::Right, KeyCode::Down, KeyCode::Up]) {
+            if timer.just_finished() {
+                sprite.index += 1;
+                if sprite.index < range[0] || sprite.index > range[1] || sprite.index > sprite.atlas.len() - 1 {
+                    sprite.index = range[0];
+                }
+            }
+        } else {
+            sprite.index = 0;
         }
     }
 }

@@ -49,6 +49,19 @@ fn npc_spawn_system(
         name: "Luffy".to_string(),
         image: images.luffy.clone()
     });
+
+    commands.spawn(Sprite3d {
+        image: images.enemy.clone(),
+        transform: Transform::from_xyz(-10.0, 2.0, 0.0).with_rotation(Quat::from_rotation_y(0.75)),
+        pixels_per_metre: 50.,
+        partial_alpha: true,
+        unlit: true,
+        ..default()
+    }.bundle(&mut sprite_params))
+    .insert(NPC {
+        name: "Luffy 2".to_string(),
+        image: images.enemy.clone()
+    });
 }
 
 type NNTree = RTreeAccess3D<NPC>;
@@ -71,18 +84,18 @@ fn check_nearest_npc(
                 if let Ok(npc) = query_npcs.get(entity) {
                     transform.1.active = false;
                     let dialogue = Dialogue {
-                        text: "Bienvenido a mi juego. Que tal estas? Que quieres hacer?".to_string(), 
+                        text: "Prueba de dialogo 1".to_string(), 
                         title: npc.name.clone(), 
                         image: npc.image.clone() 
                     };
                     let mut vec = Vec::new();
                     vec.push(Dialogue {
-                        text: "Aun sigues aqui? Vete a la mierda toto".to_string(),
+                        text: "Prueba con un dialogo bastante mas largo que el anterior".to_string(),
                         title: npc.name.clone(),
                         image: npc.image.clone()
                     });
                     vec.push(Dialogue {
-                        text: "Mira que eres pesado eeeh, que te pires!!".to_string(),
+                        text: "%$#@!*()=+".to_string(),
                         title: npc.name.clone(),
                         image: npc.image.clone()
                     });
